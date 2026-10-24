@@ -1,0 +1,37 @@
+# Nombre que aparece en la pestaña "Actions" de GitHub
+name: CI
+
+# CUÁNDO se ejecuta (triggers)
+on:
+  pull_request:          # al abrir o actualizar un PR...
+    branches: [main]     # ...que va hacia main
+  push:                  # al entrar código a main (después del merge)
+    branches: [main]
+
+# QUÉ se ejecuta
+jobs:
+  build:                       # nombre del job (lo eliges tú)
+    runs-on: ubuntu-latest     # máquina Linux limpia que presta GitHub
+    
+    steps:
+      # 1. Descargar tu repo en la máquina (empieza vacía)
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      # 2. Instalar el SDK de .NET, la MISMA versión de tu global.json
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      # 3. Descargar los paquetes NuGet
+      - name: Restore
+        run: dotnet restore
+
+      # 4. Compilar en modo Release (como en producción)
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+
+      # 5. Correr las pruebas. Si una falla, el PR se pone en ROJO
+      - name: Test
+        run: dotnet test --no-build --configuration Release
