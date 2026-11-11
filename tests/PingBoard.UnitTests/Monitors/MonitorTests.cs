@@ -1,4 +1,5 @@
 using Monitor = PingBoard.Api.Monitors.Monitor;
+
 using PingBoard.Api.Monitors;
 
 namespace PingBoard.UnitTests.Monitors;
@@ -26,5 +27,39 @@ public class MonitorTests
         Assert.True(monitor.IsActive);
         Assert.Equal(MonitorStatus.Unknown, monitor.CurrentStatus);
         Assert.Equal(Now, monitor.CreatedAt);
+    }
+
+    [Theory]
+    [InlineData(59)]
+    [InlineData(3601)]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void Create_WithIntervalOutOfRange_Throws(int interval)
+    {
+        Assert.Throws<ArgumentException>(() => Monitor.Create("My blog", "https://myblog.com", interval, Now));
+
+    }
+    [Theory]
+    [InlineData("ftp://site.com")]
+    [InlineData("not a url")]
+    [InlineData("/relative/path")]
+    public void Create_WithInvalidUrl_Throws(string url)
+    {
+        Assert.Throws<ArgumentException>(() => Monitor.Create("My blog", url, 60, Now));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("     ")]
+    public void Create_WithEmptyName_Throws(string name)
+    {
+        Assert.Throws<ArgumentException>(() => Monitor.Create(name, "https://myblog.com", 60, Now));
+    }
+
+    [Fact]
+    public void Create_WithNameMoreThan100Characters_Throws()
+    {
+        var longName = new string('a', 101);
+        Assert.Throws<ArgumentException>(() => Monitor.Create(longName, "https://myblog.com", 60, Now));
     }
 }
