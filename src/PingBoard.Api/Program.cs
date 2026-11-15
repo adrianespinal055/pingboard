@@ -1,8 +1,16 @@
+using PingBoard.Api.Monitors;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
 builder.Services.AddHealthChecks();
+
+builder.Services.AddSingleton<IMonitorRepository,InMemoryMonitorRepository>();
+builder.Services.AddSingleton<MonitorService>();
+builder.Services.AddSingleton(TimeProvider.System);
+
+
 
 var app = builder.Build();
 
@@ -19,7 +27,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapHealthChecks("/health");
-
+app.MapMonitorEndpoints();
 app.Run();
 
 public partial class Program { }
